@@ -1,0 +1,100 @@
+.data
+promptFibo:      .asciiz "O 30° número de Fibonacci é: "
+promptPhi:       .asciiz "A razão áurea usando F_41 e F_40 é: "
+newline:         .asciiz "\n"
+
+.text
+.globl main
+
+
+main:
+    
+    li $a0, 30
+    jal fibonacci
+    move $s1, $v0         
+
+    
+    li $a0, 41           
+    jal fibonacci
+    move $s2, $v0         
+
+    
+    li $a0, 40            
+    jal fibonacci
+    move $s3, $v0         
+
+    
+    move $a0, $s2         
+    move $a1, $s3         
+    jal div_float
+    
+
+    
+    la $a0, promptFibo    
+    li $v0, 4
+    syscall
+
+    move $a0, $s1         
+    li $v0, 1             
+    syscall
+
+    la $a0, newline       
+    li $v0, 4
+    syscall
+
+    
+    la $a0, promptPhi     
+    li $v0, 4
+    syscall
+
+    mov.s $f12, $f0       
+    li $v0, 2            
+    syscall
+
+    
+    li $v0, 10            
+    syscall
+
+
+fibonacci:
+    addi $sp, $sp, -8     
+    sw $ra, 4($sp)        
+    sw $a0, 0($sp)        
+
+    li $t0, 0            
+    li $t1, 1             
+
+    bgt $a0, 1, fib_loop  
+    beq $a0, 0, fib_exit  
+    move $v0, $t1         
+    j fib_return
+
+fib_loop:
+    li $t2, 2             
+fib_next:
+    add $t3, $t0, $t1     
+    move $t0, $t1         
+    move $t1, $t3         
+    addi $t2, $t2, 1      
+    ble $t2, $a0, fib_next
+
+    move $v0, $t3         
+    j fib_return
+
+fib_exit:
+    move $v0, $t0         
+
+fib_return:
+    lw $ra, 4($sp)        
+    lw $a0, 0($sp)        
+    addi $sp, $sp, 8      
+    jr $ra                
+
+
+div_float:
+    mtc1 $a0, $f12        
+    mtc1 $a1, $f14        
+    cvt.s.w $f12, $f12    
+    cvt.s.w $f14, $f14    
+    div.s $f0, $f12, $f14 
+    jr $ra
